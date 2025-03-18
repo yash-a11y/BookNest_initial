@@ -87,7 +87,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.plcoding.bookpedia"
+    namespace = "org.ycode.book_nest"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
@@ -119,11 +119,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.plcoding.bookpedia.MainKt"
+        mainClass = "org.ycode.book_nest.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.plcoding.bookpedia"
+            packageName = "org.ycode.book_nest"
             packageVersion = "1.0.0"
         }
     }
