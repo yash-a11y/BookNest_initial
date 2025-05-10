@@ -5,4 +5,7 @@
     <string name="close_hint">closed</string>
     <string name="search_results">searching ... </string>
     <string name="favorites">Favorites</string>
+    <string name="no_results">no search result found !</string>
+    <string name="book_error_2">book_error_2</string>
+
 </resources>
