@@ -1,36 +1,111 @@
 package org.ycode.book_nest.app
 
 
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import org.ycode.book_nest.book.presentation.SelectedBookViewModel
+import org.ycode.book_nest.book.presentation.book_detail.BookDetailAction
+import org.ycode.book_nest.book.presentation.book_detail.BookDetailScreenRoot
+import  org.ycode.book_nest.book.presentation.book_detail.BookDetailViewModel
+import  org.ycode.book_nest.book.presentation.book_list.BookListScreenRoot
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-import booknest.composeapp.generated.resources.Res
-import booknest.composeapp.generated.resources.compose_multiplatform
-import com.plcoding.bookpedia.book.presentation.book_list.components.SearchBar
 import org.koin.compose.viewmodel.koinViewModel
-import org.ycode.book_nest.Greeting
-import org.ycode.book_nest.book.presentation.book_list.BookListScreen_root
-import org.ycode.book_nest.book.presentation.book_list.bookListVM
+import org.ycode.book_nest.book.presentation.book_list.BookListViewModel
 
 @Composable
 @Preview
 fun App() {
+    MaterialTheme {
+        val navController = rememberNavController()
+        NavHost(
+            navController = navController,
+            startDestination = Route.BookGraph
+        ) {
+            navigation<Route.BookGraph>(
+                startDestination = Route.BookList
+            ) {
+                composable<Route.BookList>(
+                    exitTransition = { slideOutHorizontally() },
+                    popEnterTransition = { slideInHorizontally() }
+                ) {
+                    val viewModel = koinViewModel<BookListViewModel>()
+                    val selectedBookViewModel =
+                        it.sharedKoinViewModel<SelectedBookViewModel>(navController)
 
+                    LaunchedEffect(true) {
+                        selectedBookViewModel.onSelectBook(null)
+                    }
 
-        val viewmodel = koinViewModel<bookListVM>()
+                    BookListScreenRoot(
+                        viewModel = viewModel,
+                        onBookClick = { book ->
+                            selectedBookViewModel.onSelectBook(book)
+                            navController.navigate(
+                                Route.BookDetail(book.id)
+                            )
+                        }
+                    )
+                }
+                composable<Route.BookDetail>(
+                    enterTransition = { slideInHorizontally { initialOffset ->
+                        initialOffset
+                    } },
+                    exitTransition = { slideOutHorizontally { initialOffset ->
+                        initialOffset
+                    } }
+                ) {
+                    val selectedBookViewModel =
+                        it.sharedKoinViewModel<SelectedBookViewModel>(navController)
+                    val viewModel = koinViewModel<BookDetailViewModel>()
+                    val selectedBook by selectedBookViewModel.selectedBook.collectAsStateWithLifecycle()
 
-        Box()
-        {
-            BookListScreen_root()
+                    LaunchedEffect(selectedBook) {
+                        selectedBook?.let {
+                            viewModel.onAction(BookDetailAction.OnSelectedBookChange(it))
+                        }
+                    }
+
+                    BookDetailScreenRoot(
+                        viewModel = viewModel,
+                        onBackClick = {
+                            navController.navigateUp()
+                        }
+                    )
+                }
+            }
         }
 
-
+    }
 }
 
+@Composable
+private inline fun <reified T: ViewModel> NavBackStackEntry.sharedKoinViewModel(
+    navController: NavController
+): T {
+    val navGraphRoute = destination.parent?.route ?: return koinViewModel<T>()
+    val parentEntry = remember(this) {
+        navController.getBackStackEntry(navGraphRoute)
+    }
+    return koinViewModel(
+        viewModelStoreOwner = parentEntry
+    )
+}

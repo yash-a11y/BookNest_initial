@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.plcoding.bookpedia.book.presentation.book_list.components.SearchBar
+import org.ycode.book_nest.book.presentation.book_list.components.SearchBar
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Preview

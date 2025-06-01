@@ -41,12 +41,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import booknest.composeapp.generated.resources.Res
+import booknest.composeapp.generated.resources.book_error_2
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
-import com.plcoding.bookpedia.core.presentation.PulseAnimation
 import org.jetbrains.compose.resources.painterResource
 import org.ycode.book_nest.book.domain.Book
 import org.ycode.book_nest.core.presentation.LightBlue
+import org.ycode.book_nest.core.presentation.PulseAnimation
 import org.ycode.book_nest.core.presentation.SandYellow
 import kotlin.math.round
 
