@@ -7,14 +7,14 @@ BookNest is a modern, cross-platform book discovery and management application b
 ### Screenshots
 
 #### Android
-![Android Home Screen](demo/android_home.png)
-![Android Book Details](demo/android_details.png)
-![Android Favorites](demo/android_favorites.png)
+<img src="demo/android_home.png" width="300" alt="Android Home Screen">
+<img src="demo/android_details.png" width="300" alt="Android Book Details">
+<img src="demo/android_favorites.png" width="300" alt="Android Favorites">
 
 #### Desktop
-![Desktop Home Screen](demo/desktop_home.png)
-![Desktop Book Details](demo/desktop_details.png)
-![Desktop Favorites](demo/desktop_favorites.png)
+<img src="demo/desktop_home.png" width="400" alt="Desktop Home Screen">
+<img src="demo/desktop_details.png" width="400" alt="Desktop Book Details">
+<img src="demo/desktop_favorites.png" width="400" alt="Desktop Favorites">
 
 
 ### Key Features Demo
@@ -121,106 +121,92 @@ The project follows Clean Architecture principles with the following layers:
 
 ## Sequence Diagram
 
-```plantuml
-@startuml BookNest Sequence
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#ffffff'}}}%%
+sequenceDiagram
+    actor User
+    participant Screen as BookListScreen
+    participant VM as BookListViewModel
+    participant Repo as BookRepository
+    participant Remote as RemoteBookDataSource
+    participant Local as FavoriteBookDao
+    participant API as Open Library API
+    participant DB as Local Database
 
-skinparam backgroundColor white
-skinparam handwritten false
-skinparam defaultFontName Arial
-skinparam roundCorner 20
-skinparam shadowing false
-skinparam ArrowColor #0B405E
-skinparam SequenceBoxBackgroundColor #F7F7F7
-skinparam SequenceBoxBorderColor #0B405E
-
-actor User
-participant "BookListScreen" as Screen
-participant "BookListViewModel" as VM
-participant "BookRepository" as Repo
-participant "RemoteBookDataSource" as Remote
-participant "FavoriteBookDao" as Local
-participant "Open Library API" as API
-participant "Local Database" as DB
-
-== Book Search Flow ==
-
-User -> Screen: Enter search query
-activate Screen
-Screen -> VM: searchQueryChange(query)
-activate VM
-VM -> Repo: searchBooks(query)
-activate Repo
-Repo -> Remote: searchBooks(query)
-activate Remote
-Remote -> API: GET /search.json
-activate API
-API --> Remote: Search results
-deactivate API
-Remote --> Repo: Result<List<Book>>
-deactivate Remote
-Repo --> VM: Result<List<Book>>
-deactivate Repo
-VM --> Screen: Update UI with results
-deactivate VM
-Screen --> User: Display search results
-deactivate Screen
-
-== Book Details Flow ==
-
-User -> Screen: Click on book
-activate Screen
-Screen -> VM: onBookClick(book)
-activate VM
-VM -> Repo: getBookDescription(bookId)
-activate Repo
-alt Book in favorites
-    Repo -> Local: getFavoriteBook(bookId)
-    activate Local
-    Local -> DB: Query book
-    activate DB
-    DB --> Local: Book data
-    deactivate DB
-    Local --> Repo: Book data
-    deactivate Local
-else Book not in favorites
-    Repo -> Remote: getBookDetails(bookId)
+    %% Book Search Flow
+    User->>Screen: Enter search query
+    activate Screen
+    Screen->>VM: searchQueryChange(query)
+    activate VM
+    VM->>Repo: searchBooks(query)
+    activate Repo
+    Repo->>Remote: searchBooks(query)
     activate Remote
-    Remote -> API: GET /works/{id}
+    Remote->>API: GET /search.json
     activate API
-    API --> Remote: Book details
+    API-->>Remote: Search results
     deactivate API
-    Remote --> Repo: Book details
+    Remote-->>Repo: Result<List<Book>>
     deactivate Remote
-end
-Repo --> VM: Book details
-deactivate Repo
-VM --> Screen: Update UI with details
-deactivate VM
-Screen --> User: Display book details
-deactivate Screen
+    Repo-->>VM: Result<List<Book>>
+    deactivate Repo
+    VM-->>Screen: Update UI with results
+    deactivate VM
+    Screen-->>User: Display search results
+    deactivate Screen
 
-== Add to Favorites Flow ==
+    %% Book Details Flow
+    User->>Screen: Click on book
+    activate Screen
+    Screen->>VM: onBookClick(book)
+    activate VM
+    VM->>Repo: getBookDescription(bookId)
+    activate Repo
+    alt Book in favorites
+        Repo->>Local: getFavoriteBook(bookId)
+        activate Local
+        Local->>DB: Query book
+        activate DB
+        DB-->>Local: Book data
+        deactivate DB
+        Local-->>Repo: Book data
+        deactivate Local
+    else Book not in favorites
+        Repo->>Remote: getBookDetails(bookId)
+        activate Remote
+        Remote->>API: GET /works/{id}
+        activate API
+        API-->>Remote: Book details
+        deactivate API
+        Remote-->>Repo: Book details
+        deactivate Remote
+    end
+    Repo-->>VM: Book details
+    deactivate Repo
+    VM-->>Screen: Update UI with details
+    deactivate VM
+    Screen-->>User: Display book details
+    deactivate Screen
 
-User -> Screen: Click favorite button
-activate Screen
-Screen -> VM: markAsFavorite(book)
-activate VM
-VM -> Repo: markAsFavorite(book)
-activate Repo
-Repo -> Local: upsert(book)
-activate Local
-Local -> DB: Save book
-activate DB
-DB --> Local: Success
-deactivate DB
-Local --> Repo: Success
-deactivate Local
-Repo --> VM: Success
-deactivate Repo
-VM --> Screen: Update UI
-deactivate VM
-Screen --> User: Show confirmation
-deactivate Screen
-
-@enduml
+    %% Add to Favorites Flow
+    User->>Screen: Click favorite button
+    activate Screen
+    Screen->>VM: markAsFavorite(book)
+    activate VM
+    VM->>Repo: markAsFavorite(book)
+    activate Repo
+    Repo->>Local: upsert(book)
+    activate Local
+    Local->>DB: Save book
+    activate DB
+    DB-->>Local: Success
+    deactivate DB
+    Local-->>Repo: Success
+    deactivate Local
+    Repo-->>VM: Success
+    deactivate Repo
+    VM-->>Screen: Update UI
+    deactivate VM
+    Screen-->>User: Show confirmation
+    deactivate Screen
 ```
