@@ -1,0 +1,101 @@
+@startuml BookNest Sequence
+
+skinparam backgroundColor white
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam roundCorner 20
+skinparam shadowing false
+skinparam ArrowColor #0B405E
+skinparam SequenceBoxBackgroundColor #F7F7F7
+skinparam SequenceBoxBorderColor #0B405E
+
+actor User
+participant "BookListScreen" as Screen
+participant "BookListViewModel" as VM
+participant "BookRepository" as Repo
+participant "RemoteBookDataSource" as Remote
+participant "FavoriteBookDao" as Local
+participant "Open Library API" as API
+participant "Local Database" as DB
+
+== Book Search Flow ==
+
+User -> Screen: Enter search query
+activate Screen
+Screen -> VM: searchQueryChange(query)
+activate VM
+VM -> Repo: searchBooks(query)
+activate Repo
+Repo -> Remote: searchBooks(query)
+activate Remote
+Remote -> API: GET /search.json
+activate API
+API --> Remote: Search results
+deactivate API
+Remote --> Repo: Result<List<Book>>
+deactivate Remote
+Repo --> VM: Result<List<Book>>
+deactivate Repo
+VM --> Screen: Update UI with results
+deactivate VM
+Screen --> User: Display search results
+deactivate Screen
+
+== Book Details Flow ==
+
+User -> Screen: Click on book
+activate Screen
+Screen -> VM: onBookClick(book)
+activate VM
+VM -> Repo: getBookDescription(bookId)
+activate Repo
+alt Book in favorites
+    Repo -> Local: getFavoriteBook(bookId)
+    activate Local
+    Local -> DB: Query book
+    activate DB
+    DB --> Local: Book data
+    deactivate DB
+    Local --> Repo: Book data
+    deactivate Local
+else Book not in favorites
+    Repo -> Remote: getBookDetails(bookId)
+    activate Remote
+    Remote -> API: GET /works/{id}
+    activate API
+    API --> Remote: Book details
+    deactivate API
+    Remote --> Repo: Book details
+    deactivate Remote
+end
+Repo --> VM: Book details
+deactivate Repo
+VM --> Screen: Update UI with details
+deactivate VM
+Screen --> User: Display book details
+deactivate Screen
+
+== Add to Favorites Flow ==
+
+User -> Screen: Click favorite button
+activate Screen
+Screen -> VM: markAsFavorite(book)
+activate VM
+VM -> Repo: markAsFavorite(book)
+activate Repo
+Repo -> Local: upsert(book)
+activate Local
+Local -> DB: Save book
+activate DB
+DB --> Local: Success
+deactivate DB
+Local --> Repo: Success
+deactivate Local
+Repo --> VM: Success
+deactivate Repo
+VM --> Screen: Update UI
+deactivate VM
+Screen --> User: Show confirmation
+deactivate Screen
+
+@enduml 

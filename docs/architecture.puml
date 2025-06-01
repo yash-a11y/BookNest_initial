@@ -1,0 +1,88 @@
+@startuml BookNest Architecture
+
+!define RECTANGLE class
+
+skinparam backgroundColor white
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam roundCorner 20
+skinparam shadowing false
+skinparam ArrowColor #0B405E
+skinparam ClassBackgroundColor #F7F7F7
+skinparam ClassBorderColor #0B405E
+
+' Main Components
+package "Presentation Layer" {
+    RECTANGLE "BookListScreen" as BookListScreen
+    RECTANGLE "BookDetailScreen" as BookDetailScreen
+    RECTANGLE "BookListViewModel" as BookListVM
+    RECTANGLE "BookDetailViewModel" as BookDetailVM
+}
+
+package "Domain Layer" {
+    RECTANGLE "BookRepository" as BookRepo
+    RECTANGLE "Book" as Book
+    RECTANGLE "Use Cases" as UseCases
+}
+
+package "Data Layer" {
+    RECTANGLE "RemoteBookDataSource" as RemoteDS
+    RECTANGLE "FavoriteBookDao" as LocalDS
+    RECTANGLE "DefaultBookRepository" as DefaultRepo
+}
+
+package "Core" {
+    RECTANGLE "HttpClient" as HttpClient
+    RECTANGLE "Database" as Database
+    RECTANGLE "Dependency Injection" as DI
+}
+
+' Relationships
+BookListScreen --> BookListVM
+BookDetailScreen --> BookDetailVM
+BookListVM --> BookRepo
+BookDetailVM --> BookRepo
+BookRepo <|.. DefaultRepo
+DefaultRepo --> RemoteDS
+DefaultRepo --> LocalDS
+RemoteDS --> HttpClient
+LocalDS --> Database
+DI --> HttpClient
+DI --> Database
+DI --> DefaultRepo
+DI --> BookListVM
+DI --> BookDetailVM
+
+' Notes
+note right of BookListScreen
+  Handles book search and
+  list display
+end note
+
+note right of BookDetailScreen
+  Shows detailed book
+  information
+end note
+
+note right of BookRepo
+  Defines repository
+  interface
+end note
+
+note right of DefaultRepo
+  Implements repository
+  with local and remote
+  data sources
+end note
+
+note right of RemoteDS
+  Fetches data from
+  Open Library API
+end note
+
+note right of LocalDS
+  Manages local storage
+  of favorite books
+end note
+
+@enduml 

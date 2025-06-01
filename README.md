@@ -1,14 +1,226 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Desktop.
+# BookNest 
 
-* `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - `commonMain` is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    `iosMain` would be the right folder for such calls.
+BookNest is a modern, cross-platform book discovery and management application built with Kotlin Multiplatform and Jetpack Compose. It allows users to search for books, view details, and manage their favorite books across Android, iOS, and Desktop platforms.
 
-* `/iosApp` contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform, 
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+## Demo 🎥
+
+### Screenshots
+
+#### Android
+![Android Home Screen](demo/android_home.png)
+![Android Book Details](demo/android_details.png)
+![Android Favorites](demo/android_favorites.png)
+
+#### Desktop
+![Desktop Home Screen](demo/desktop_home.png)
+![Desktop Book Details](demo/desktop_details.png)
+![Desktop Favorites](demo/desktop_favorites.png)
 
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+### Key Features Demo
+
+1. **Book Search**
+   - Real-time search with Open Library API
+   - Instant results with book covers
+   - Smooth animations and transitions
+
+2. **Book Details**
+   - Comprehensive book information
+   - Beautiful cover image display
+   - Author information and publication details
+   - Ratings and reviews
+   - Add to favorites functionality
+
+3. **Favorites Management**
+   - Save books for offline access
+   - Easy-to-use favorites interface
+   - Quick access to saved books
+   - Smooth animations when adding/removing favorites
+
+## Features 
+
+- **Cross-Platform**: Works on Android, iOS, and Desktop
+- **Book Search**: Search for books using the Open Library API
+- **Book Details**: View comprehensive book information including:
+  - Cover images
+  - Author information
+  - Publication details
+  - Ratings
+  - Page count
+  - Language
+  - Synopsis
+- **Favorites**: Save and manage your favorite books
+- **Modern UI**: Beautiful Material 3 design with smooth animations
+- **Offline Support**: Access your favorite books even without internet
+
+## Tech Stack 
+
+- **Kotlin Multiplatform**: For cross-platform development
+- **Jetpack Compose**: For modern UI development
+- **Ktor**: For network requests
+- **Room**: For local database
+- **Koin**: For dependency injection
+- **Coil**: For image loading
+- **Open Library API**: For book data
+
+## Project Structure 📁
+
+```
+composeApp/
+├── src/
+│   ├── commonMain/          # Shared code
+│   ├── androidMain/         # Android-specific code
+│   ├── iosMain/            # iOS-specific code
+│   └── desktopMain/        # Desktop-specific code
+```
+
+## Getting Started 🚀
+
+### Prerequisites
+
+- Android Studio Hedgehog or newer
+- JDK 17 or newer
+- For iOS development: macOS and Xcode
+- For Desktop development: JDK 17
+
+### Building the Project
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/BookNest.git
+cd BookNest
+```
+
+2. Open the project in Android Studio
+
+3. Build and run:
+
+For Android:
+```bash
+./gradlew :composeApp:installDebug
+```
+
+For Desktop:
+```bash
+./gradlew :composeApp:run
+```
+
+For iOS (requires macOS):
+```bash
+./gradlew :composeApp:embedAndSignAppleFrameworkForXcode
+```
+
+## Architecture 🏗
+
+The project follows Clean Architecture principles with the following layers:
+
+- **Presentation**: UI components and ViewModels
+- **Domain**: Business logic and use cases
+- **Data**: Repository implementations and data sources
+- **Core**: Common utilities and extensions
+
+## Sequence Diagram
+
+```plantuml
+@startuml BookNest Sequence
+
+skinparam backgroundColor white
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam roundCorner 20
+skinparam shadowing false
+skinparam ArrowColor #0B405E
+skinparam SequenceBoxBackgroundColor #F7F7F7
+skinparam SequenceBoxBorderColor #0B405E
+
+actor User
+participant "BookListScreen" as Screen
+participant "BookListViewModel" as VM
+participant "BookRepository" as Repo
+participant "RemoteBookDataSource" as Remote
+participant "FavoriteBookDao" as Local
+participant "Open Library API" as API
+participant "Local Database" as DB
+
+== Book Search Flow ==
+
+User -> Screen: Enter search query
+activate Screen
+Screen -> VM: searchQueryChange(query)
+activate VM
+VM -> Repo: searchBooks(query)
+activate Repo
+Repo -> Remote: searchBooks(query)
+activate Remote
+Remote -> API: GET /search.json
+activate API
+API --> Remote: Search results
+deactivate API
+Remote --> Repo: Result<List<Book>>
+deactivate Remote
+Repo --> VM: Result<List<Book>>
+deactivate Repo
+VM --> Screen: Update UI with results
+deactivate VM
+Screen --> User: Display search results
+deactivate Screen
+
+== Book Details Flow ==
+
+User -> Screen: Click on book
+activate Screen
+Screen -> VM: onBookClick(book)
+activate VM
+VM -> Repo: getBookDescription(bookId)
+activate Repo
+alt Book in favorites
+    Repo -> Local: getFavoriteBook(bookId)
+    activate Local
+    Local -> DB: Query book
+    activate DB
+    DB --> Local: Book data
+    deactivate DB
+    Local --> Repo: Book data
+    deactivate Local
+else Book not in favorites
+    Repo -> Remote: getBookDetails(bookId)
+    activate Remote
+    Remote -> API: GET /works/{id}
+    activate API
+    API --> Remote: Book details
+    deactivate API
+    Remote --> Repo: Book details
+    deactivate Remote
+end
+Repo --> VM: Book details
+deactivate Repo
+VM --> Screen: Update UI with details
+deactivate VM
+Screen --> User: Display book details
+deactivate Screen
+
+== Add to Favorites Flow ==
+
+User -> Screen: Click favorite button
+activate Screen
+Screen -> VM: markAsFavorite(book)
+activate VM
+VM -> Repo: markAsFavorite(book)
+activate Repo
+Repo -> Local: upsert(book)
+activate Local
+Local -> DB: Save book
+activate DB
+DB --> Local: Success
+deactivate DB
+Local --> Repo: Success
+deactivate Local
+Repo --> VM: Success
+deactivate Repo
+VM --> Screen: Update UI
+deactivate VM
+Screen --> User: Show confirmation
+deactivate Screen
+
+@enduml
+```
